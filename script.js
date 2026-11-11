@@ -14,7 +14,7 @@ const strengthLabel = document.getElementById('strengthLabel');
 
 function validatePhone(value) {
   const digitsOnly = value.replace(/\D/g, '');
-  const isValidLength = digitsOnly.length >= 9;
+  const isValidLength = digitsOnly.length === 11;
   const startsCorrectly = digitsOnly.startsWith('7') || digitsOnly.startsWith('8');
   return isValidLength && startsCorrectly;
 }
