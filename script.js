@@ -3,6 +3,15 @@ const phoneInput = document.getElementById('phone');
 const passwordInput = document.getElementById('password');
 const confirmInput = document.getElementById('confirmPassword');
 const submitBtn = document.getElementById('submitBtn');
+let formHint = document.getElementById('formHint');
+if (!formHint) {
+  formHint = document.createElement('span');
+  formHint.id = 'formHint';
+  formHint.className = 'strength-label';
+  submitBtn.insertAdjacentElement('afterend', formHint);
+}
+formHint.setAttribute('role', 'status');
+submitBtn.setAttribute('aria-describedby', 'formHint');
 
 const phoneError = document.getElementById('phoneError');
 const passwordError = document.getElementById('passwordError');
@@ -77,7 +86,23 @@ function isFormValid() {
 }
 
 function updateSubmitButtonState() {
+  const corrections = [];
+  if (!validatePhone(phoneInput.value)) {
+    corrections.push('введите телефон в формате +7XXXXXXXXXX (11 цифр)');
+  }
+  if (!isPasswordValid(passwordInput.value)) {
+    corrections.push(passwordInput.value.length === 0
+      ? 'введите пароль (8–30 символов, буква, цифра и спецсимвол, без пробелов)'
+      : getPasswordErrorMessage(passwordInput.value));
+  }
+  if (!doPasswordsMatch(passwordInput.value, confirmInput.value)) {
+    corrections.push('повторите пароль так, чтобы пароли совпадали');
+  }
+
   submitBtn.disabled = !isFormValid();
+  formHint.textContent = submitBtn.disabled
+    ? `Чтобы зарегистрироваться: ${corrections.join('; ')}.`
+    : '';
   submitBtn.style.opacity = submitBtn.disabled ? '0.5' : '1';
   submitBtn.style.cursor = submitBtn.disabled ? 'not-allowed' : 'pointer';
 }
