@@ -3,6 +3,15 @@ const phoneInput = document.getElementById('phone');
 const passwordInput = document.getElementById('password');
 const confirmInput = document.getElementById('confirmPassword');
 const submitBtn = document.getElementById('submitBtn');
+let formHint = document.getElementById('formHint');
+if (!formHint) {
+  formHint = document.createElement('span');
+  formHint.id = 'formHint';
+  formHint.className = 'strength-label';
+  submitBtn.insertAdjacentElement('afterend', formHint);
+}
+formHint.setAttribute('role', 'status');
+submitBtn.setAttribute('aria-describedby', 'formHint');
 
 const phoneError = document.getElementById('phoneError');
 const passwordError = document.getElementById('passwordError');
@@ -13,10 +22,8 @@ const strengthBar = document.getElementById('strengthBar');
 const strengthLabel = document.getElementById('strengthLabel');
 
 function validatePhone(value) {
-  const digitsOnly = value.replace(/\D/g, '');
-  const isValidLength = digitsOnly.length === 11;
-  const startsCorrectly = digitsOnly.startsWith('7') || digitsOnly.startsWith('8');
-  return isValidLength && startsCorrectly;
+  // Проверяем всю строку, включая отсутствие пробелов и перевода строки в конце.
+  return /^(?:\+7|[78])[0-9]{10}(?![\s\S])/.test(value);
 }
 
 function getPasswordStrength(value) {
@@ -34,7 +41,24 @@ function getPasswordStrength(value) {
 }
 
 function isPasswordValid(value) {
-  return getPasswordStrength(value) >= 2 && value.length >= 8;
+  if (value.length < 8 || value.length > 30) return false;
+  if (/\s/.test(value)) return false;
+  if (!/[0-9]/.test(value)) return false;
+  if (!/[^a-zA-Z0-9]/.test(value)) return false;
+  if (!/[a-zA-Z]/.test(value)) return false;
+
+  return true;
+}
+
+function getPasswordErrorMessage(value) {
+  if (value.length === 0) return '';
+  if (/\s/.test(value)) return 'Пароль не должен содержать пробелов';
+  if (value.length < 8) return 'Пароль слишком короткий: минимум 8 символов';
+  if (value.length > 30) return 'Пароль слишком длинный: максимум 30 символов';
+  if (!/[a-zA-Z]/.test(value)) return 'Пароль должен содержать хотя бы одну букву';
+  if (!/[0-9]/.test(value)) return 'Пароль должен содержать хотя бы одну цифру';
+  if (!/[^a-zA-Z0-9]/.test(value)) return 'Пароль должен содержать хотя бы один спецсимвол';
+  return '';
 }
 
 function doPasswordsMatch(password, confirm) {
@@ -60,7 +84,23 @@ function isFormValid() {
 }
 
 function updateSubmitButtonState() {
+  const corrections = [];
+  if (!validatePhone(phoneInput.value)) {
+    corrections.push('введите телефон в формате +7XXXXXXXXXX (11 цифр)');
+  }
+  if (!isPasswordValid(passwordInput.value)) {
+    corrections.push(passwordInput.value.length === 0
+      ? 'введите пароль (8–30 символов, буква, цифра и спецсимвол, без пробелов)'
+      : getPasswordErrorMessage(passwordInput.value));
+  }
+  if (!doPasswordsMatch(passwordInput.value, confirmInput.value)) {
+    corrections.push('повторите пароль так, чтобы пароли совпадали');
+  }
+
   submitBtn.disabled = !isFormValid();
+  formHint.textContent = submitBtn.disabled
+    ? `Чтобы зарегистрироваться: ${corrections.join('; ')}.`
+    : '';
   submitBtn.style.opacity = submitBtn.disabled ? '0.5' : '1';
   submitBtn.style.cursor = submitBtn.disabled ? 'not-allowed' : 'pointer';
 }
@@ -79,13 +119,7 @@ phoneInput.addEventListener('input', () => {
 passwordInput.addEventListener('input', () => {
   updateStrengthUI(passwordInput.value);
 
-  if (passwordInput.value.length === 0) {
-    passwordError.textContent = '';
-  } else if (!isPasswordValid(passwordInput.value)) {
-    passwordError.textContent = 'Пароль слишком слабый: минимум 8 символов, добавьте цифры или спецсимволы';
-  } else {
-    passwordError.textContent = '';
-  }
+  passwordError.textContent = getPasswordErrorMessage(passwordInput.value);
 
   if (confirmInput.value.length > 0) {
     confirmError.textContent = doPasswordsMatch(passwordInput.value, confirmInput.value)
