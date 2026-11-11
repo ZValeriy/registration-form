@@ -38,7 +38,7 @@ function isPasswordValid(value) {
 }
 
 function doPasswordsMatch(password, confirm) {
-  return password.toLowerCase() === confirm.toLowerCase() && confirm.length > 0;
+  return password === confirm && confirm.length > 0;
 }
 
 function updateStrengthUI(value) {
