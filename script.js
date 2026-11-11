@@ -22,10 +22,8 @@ const strengthBar = document.getElementById('strengthBar');
 const strengthLabel = document.getElementById('strengthLabel');
 
 function validatePhone(value) {
-  const digitsOnly = value.replace(/\D/g, '');
-  const isValidLength = digitsOnly.length === 11;
-  const startsCorrectly = digitsOnly.startsWith('7') || digitsOnly.startsWith('8');
-  return isValidLength && startsCorrectly;
+  // Проверяем всю строку, включая отсутствие пробелов и перевода строки в конце.
+  return /^(?:\+7|[78])[0-9]{10}(?![\s\S])/.test(value);
 }
 
 function getPasswordStrength(value) {
